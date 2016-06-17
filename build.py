@@ -12,8 +12,10 @@ import sys
 import tools
 from tools import vctools
 
-
 _ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+sys.path.append(os.path.join(_ROOT_DIR, 'thirdparty'))
+import openssl
 
 
 def _print_message(text):
@@ -135,6 +137,11 @@ def build_all(args):
     else:
         install_dir = os.path.join(_ROOT_DIR, 'install', platform_dir)
 
+    qt_include_dirs = []
+    qt_lib_dirs = []
+    qt_static_libs = []
+    qt_dynamic_libs = []
+
     # config
     qt_config_options = args.config_option if args.config_option else []
 
@@ -145,6 +152,28 @@ def build_all(args):
             if os.path.exists(path):
                 shutil.rmtree(path)
         _clean(QT_SOURCE)
+
+    # build openssl
+    if not args.skip_openssl_build:
+        _print_message('Building OpenSSL...\n')
+        openssl_install_dir = os.path.join(build_dir, 'openssl')
+        openssl_builder = openssl.Builder(target, openssl_install_dir)
+
+        if args.rebuild:
+            _clean(openssl_builder.SOURCE_DIR)
+
+        openssl_builder.build(env)
+
+        qt_include_dirs += [openssl_builder.include_dir]
+        qt_lib_dirs += [openssl_builder.lib_dir]
+        qt_static_libs += openssl_builder.static_libs
+
+        if openssl_builder.bin_dir:
+            qt_dynamic_libs += [os.path.join(openssl_builder.bin_dir, name)
+                                for name in openssl_builder.dynamic_libs]
+            _add_to_path_variable(env, openssl_builder.bin_dir)
+
+        qt_config_options += ['-openssl-linked']
 
     # build qt
     _print_message('Building Qt...\n')
@@ -169,6 +198,8 @@ if __name__ == '__main__':
                              'untracked files from submodules')
     parser.add_argument('--config-option', '-c', action='append',
                         help='Additional option for Qt configure script')
+    parser.add_argument('--skip-openssl-build', action='store_true',
+                        help='Skip build OpenSSL library')
     subparsers = parser.add_subparsers(dest='target', help='Target platform')
 
     parser_win32_msvc = subparsers.add_parser('win32-msvc',

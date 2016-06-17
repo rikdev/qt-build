@@ -4,3 +4,6 @@
 [submodule "tools/PythonVCTools"]
 	path = tools/PythonVCTools
 	url = https://github.com/rikdev/PythonVCTools.git
+[submodule "thirdparty/openssl/src"]
+	path = thirdparty/openssl/src
+	url = https://github.com/openssl/openssl.git

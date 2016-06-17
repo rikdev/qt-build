@@ -32,8 +32,6 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     # Logging backends/journald
     libsystemd-journal-dev \
-    # OpenSSL
-    libssl-dev \
     # OpenGL / OpenVG
     libegl1-mesa-dev \
     libgl1-mesa-dev \
