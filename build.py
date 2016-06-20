@@ -15,6 +15,7 @@ from tools import vctools
 _ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.append(os.path.join(_ROOT_DIR, 'thirdparty'))
+import icu
 import openssl
 
 
@@ -111,6 +112,10 @@ def build_all(args):
     if args.target == 'win32-msvc':
         vc_tools = vctools.VCTools(args.vs_version, args.platform)
         env = vc_tools.environ.copy()
+        # workaround for Visual C++ Build Tools
+        if env.get('VISUALSTUDIOVERSION') is None:
+            env['VISUALSTUDIOVERSION'] = \
+                '{}.0'.format(vc_tools.VERSIONS[vc_tools.version_name])
         env['GYP_MSVS_VERSION'] = vc_tools.version_name
         env['GYP_MSVS_OVERRIDE_PATH'] = os.path.normpath(
             os.path.join(vc_tools.get_vc_install_dir(), '..', 'Common7', 'IDE'))
@@ -152,6 +157,28 @@ def build_all(args):
             if os.path.exists(path):
                 shutil.rmtree(path)
         _clean(QT_SOURCE)
+
+    # build icu
+    if not args.skip_icu_build:
+        _print_message('Building ICU...\n')
+        icu_install_dir = os.path.join(build_dir, 'icu',)
+        icu_builder = icu.Builder(target, icu_install_dir)
+
+        if args.rebuild:
+            _clean(icu_builder.SOURCE_DIR)
+
+        icu_builder.build(env)
+
+        qt_include_dirs += [icu_builder.include_dir]
+        qt_lib_dirs += [icu_builder.lib_dir]
+        qt_static_libs += icu_builder.static_libs
+
+        if icu_builder.bin_dir:
+            qt_dynamic_libs += [os.path.join(icu_builder.bin_dir, name)
+                                for name in icu_builder.dynamic_libs]
+            _add_to_path_variable(env, icu_builder.bin_dir)
+
+        qt_config_options += ['-icu']
 
     # build openssl
     if not args.skip_openssl_build:
@@ -198,6 +225,8 @@ if __name__ == '__main__':
                              'untracked files from submodules')
     parser.add_argument('--config-option', '-c', action='append',
                         help='Additional option for Qt configure script')
+    parser.add_argument('--skip-icu-build', action='store_true',
+                        help='Skip build ICU library')
     parser.add_argument('--skip-openssl-build', action='store_true',
                         help='Skip build OpenSSL library')
     subparsers = parser.add_subparsers(dest='target', help='Target platform')

@@ -22,8 +22,6 @@ RUN apt-get update && apt-get install -y \
     libgstreamer-plugins-base1.0-dev \
     # GTK theme
     libgtk2.0-dev \
-    # ICU
-    libicu-dev \
     # mtdev
     libmtdev-dev \
     # Networking/libproxy

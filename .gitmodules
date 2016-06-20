@@ -7,3 +7,6 @@
 [submodule "thirdparty/openssl/src"]
 	path = thirdparty/openssl/src
 	url = https://github.com/openssl/openssl.git
+[submodule "thirdparty/icu/src"]
+	path = thirdparty/icu/src
+	url = https://github.com/icu-project/icu4c.git
