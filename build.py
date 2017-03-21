@@ -113,12 +113,16 @@ def build_all(args):
         vc_tools = vctools.VCTools(args.vs_version, args.platform)
         env = vc_tools.environ.copy()
         # workaround for Visual C++ Build Tools
-        if env.get('VISUALSTUDIOVERSION') is None:
-            env['VISUALSTUDIOVERSION'] = \
-                '{}.0'.format(vc_tools.VERSIONS[vc_tools.version_name])
+        DEFAULT_TOOLSET_VERSIONS = {
+            '2012': '110',
+            '2013': '120',
+            '2015': '140',
+            '2017': '141',
+            }
+        env['PLATFORM_TOOLSET'] = DEFAULT_TOOLSET_VERSIONS[vc_tools.version_name]
         env['GYP_MSVS_VERSION'] = vc_tools.version_name
         env['GYP_MSVS_OVERRIDE_PATH'] = os.path.normpath(
-            os.path.join(vc_tools.get_vc_install_dir(), '..', 'Common7', 'IDE'))
+            os.path.join(vc_tools.get_vs_install_dir(), 'Common7', 'IDE'))
         env['CL'] = '/wd4334'
         target = 'win32-msvc' + vc_tools.version_name
         platform_dir = target + '_' + args.platform

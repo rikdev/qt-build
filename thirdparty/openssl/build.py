@@ -50,7 +50,7 @@ class Builder:
 
     def _build_win32(self, env, shared=False):
         # configure
-        platform = env.get('PLATFORM', 'X86')
+        platform = env.get('PLATFORM', 'X86').upper()
         config = {'X86': 'VC-WIN32', 'X64': 'VC-WIN64A'}[platform]
         subprocess.check_call(['perl', 'Configure', config, 'no-asm',
                                '--prefix={}'.format(self.install_dir)],

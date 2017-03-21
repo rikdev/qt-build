@@ -52,15 +52,17 @@ class Builder:
     def _build_win32(self, env):
         # build
         project_dir = os.path.join(self.SOURCE_DIR, 'source', 'allinone')
-        platform = env.get('PLATFORM', 'X86')
+        platform = env.get('PLATFORM', 'X86').upper()
         project_platform = {'X86': 'Win32', 'X64': 'x64'}[platform]
-        toolset = env['VISUALSTUDIOVERSION'].replace('.', '')
         cmd = ['msbuild', 'allinone.sln', '/m',
                '/p:Configuration=Release',
                '/p:Platform={}'.format(project_platform),
-               '/p:PlatformToolset=v{}'.format(toolset),
+               '/p:PlatformToolset=v{}'.format(env['PLATFORM_TOOLSET']),
                '/p:TargetFrameworkMoniker=".NETFramework,Version=v3.5"',
               ]
+        ucrt_version = env.get('UCRTVERSION')
+        if ucrt_version:
+            cmd.append('/p:WindowsTargetPlatformVersion={}'.format(ucrt_version))
         subprocess.check_call(' '.join(cmd), shell=True, env=env,
                               cwd=project_dir)
 
