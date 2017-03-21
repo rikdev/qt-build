@@ -26,11 +26,11 @@ class Builder:
         self.dynamic_libs = []
 
         if target.startswith('win32-msvc'):
-            self.static_libs = ['advapi32', 'crypt32', 'gdi32', 'user32',
-                                'ws2_32']
+            self.static_libs = ['ssleay32', 'libeay32', 'advapi32', 'crypt32',
+                                'gdi32', 'user32', 'ws2_32']
             self._builder = self._build_win32
         elif target.startswith('linux-g++'):
-            self.static_libs = ['dl']
+            self.static_libs = ['ssl', 'crypto', 'dl']
             self._builder = self._build_linux
         elif target.startswith('macx-clang'):
             self.static_libs = []

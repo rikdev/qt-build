@@ -75,8 +75,10 @@ def _build_qt(target, install_dir, env, config_options=None,
         for lib_dir in lib_dirs:
             config_cmd += ['-L', '"{}"'.format(lib_dir)]
     if libs:
-        for lib in libs:
-            config_cmd += ['-l', lib]
+        libs_line = '"LIBS += {}"'.format(' '.join(['-l' + l for l in libs]))
+        qmakeflags = env.get('QMAKEFLAGS')
+        env['QMAKEFLAGS'] = (qmakeflags + ' ' if qmakeflags else '') + libs_line
+
     subprocess.check_call(' '.join(config_cmd), shell=True, env=env,
                           cwd=QT_SOURCE)
 
@@ -197,7 +199,10 @@ def build_all(args):
 
         qt_include_dirs += [openssl_builder.include_dir]
         qt_lib_dirs += [openssl_builder.lib_dir]
-        qt_static_libs += openssl_builder.static_libs
+
+        if openssl_builder.static_libs:
+            libs = ['-l' + lib for lib in openssl_builder.static_libs]
+            env['OPENSSL_LIBS'] = ' '.join(libs)
 
         if openssl_builder.bin_dir:
             qt_dynamic_libs += [os.path.join(openssl_builder.bin_dir, name)
